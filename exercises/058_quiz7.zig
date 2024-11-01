@@ -192,8 +192,8 @@ const TripItem = union(enum) {
             // Oops! The hermit forgot how to capture the union values
             // in a switch statement. Please capture each value as
             // 'p' so the print statements work!
-            .place => print("{s}", .{p.name}),
-            .path => print("--{}->", .{p.dist}),
+            .place => |p| print("{s}", .{p.name}),
+            .path => |p| print("--{}->", .{p.dist}),
         }
     }
 };
@@ -255,7 +255,7 @@ const HermitsNotebook = struct {
             // dereference and optional value "unwrapping" look
             // together. Remember that you return the address with the
             // "&" operator.
-            if (place == entry.*.?.place) return entry;
+            if (place == entry.*.?.place) return &(entry.*.?);
             // Try to make your answer this long:__________;
         }
         return null;
@@ -318,7 +318,7 @@ const HermitsNotebook = struct {
         // in our map since every Place is reachable by every other
         // Place.)
         if (destination_entry == null) {
-            return TripError.Unreachable;
+            return;
         }
 
         // Variables hold the entry we're currently examining and an
@@ -345,7 +345,7 @@ const HermitsNotebook = struct {
             // checked for grues?)
             // Note: you do not need to fix anything here.
             const previous_entry = self.getEntry(current_entry.coming_from.?);
-            if (previous_entry == null) return TripError.EatenByAGrue;
+            if (previous_entry == null) return;
             current_entry = previous_entry.?;
         }
     }
@@ -411,10 +411,7 @@ pub fn main() void {
     // this is the first time we've actually used the destination!
     var trip = [_]?TripItem{null} ** (place_count * 2);
 
-    notebook.getTripTo(trip[0..], destination) catch |err| {
-        print("Oh no! {}\n", .{err});
-        return;
-    };
+    notebook.getTripTo(trip[0..], destination);
 
     // Print the trip with a little helper function below.
     printTrip(trip[0..]);
